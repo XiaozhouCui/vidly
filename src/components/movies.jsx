@@ -5,6 +5,7 @@ import ListGroup from "./common/listGroup";
 import { getMovies } from "../services/fakeMovieService";
 import { getGenres } from "../services/fakeGenreService";
 import { paginate } from "../utils/paginate";
+import _ from "lodash";
 
 class Movies extends Component {
   state = {
@@ -12,26 +13,26 @@ class Movies extends Component {
     genres: [],
     currentPage: 1,
     pageSize: 4,
+    sortColumn: { path: "title", order: "asc" }, // formatted for lodash method "orderBy"
   };
 
   componentDidMount() {
-    const genres = [{ name: "All Genres" }, ...getGenres()];
+    const genres = [{ _id: "", name: "All Genres" }, ...getGenres()]; // in the list group, prepend a new item "All Gengres" before genres
 
-    this.setState({ movies: getMovies(), genres: genres });
+    this.setState({ movies: getMovies(), genres }); // "genres" is equivalent to "genres: genres"
   }
 
   handleDelete = (movie) => {
-    // return a list of movies except the current movie
-    const movies = this.state.movies.filter((m) => m._id !== movie._id);
-    this.setState({ movies: movies });
+    const movies = this.state.movies.filter((m) => m._id !== movie._id); // return a list of movies except the current movie
+    this.setState({ movies }); // { movies } is equivalent to { movies: movies }
   };
 
   handleLike = (movie) => {
-    const movies = [...this.state.movies];
+    const movies = [...this.state.movies]; // shallow clone of movies in state
     const index = movies.indexOf(movie);
-    movies[index] = { ...movie };
+    movies[index] = { ...movie }; // shallow clone of argument, otherwise the state will be updated even without setState()
     movies[index].liked = !movies[index].liked;
-    this.setState({ movies: movies });
+    this.setState({ movies }); // { movies } is equivalent to { movies: movies }
   };
 
   handlePageChange = (page) => {
@@ -42,12 +43,16 @@ class Movies extends Component {
     this.setState({ selectedGenre: genre, currentPage: 1 });
   };
 
+  handleSort = (sortColumn) => {
+    this.setState({ sortColumn }); // { sortColumn } is equivalent to { sortColumn: sortColumn }
+  };
+
   render() {
-    // save length of movies array as 'count'
-    const { length: count } = this.state.movies;
+    const { length: count } = this.state.movies; // save length of movies array as 'count'
     const {
       pageSize,
       currentPage,
+      sortColumn,
       selectedGenre,
       movies: allMovies,
     } = this.state;
@@ -59,7 +64,9 @@ class Movies extends Component {
         ? allMovies.filter((m) => m.genre._id === selectedGenre._id)
         : allMovies;
 
-    const movies = paginate(filtered, currentPage, pageSize);
+    const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]); // array arguments because we may sort by multiple columns or properties
+
+    const movies = paginate(sorted, currentPage, pageSize);
 
     return (
       <div className="row">
@@ -74,8 +81,10 @@ class Movies extends Component {
           <p>Showing {filtered.length} movies in the database.</p>
           <MoviesTable
             movies={movies}
+            sortColumn={sortColumn}
             onLike={this.handleLike}
             onDelete={this.handleDelete}
+            onSort={this.handleSort}
           />
           <Pagination
             itemsCount={filtered.length}
