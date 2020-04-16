@@ -18,7 +18,6 @@ class Movies extends Component {
 
   componentDidMount() {
     const genres = [{ _id: "", name: "All Genres" }, ...getGenres()]; // in the list group, prepend a new item "All Gengres" before genres
-
     this.setState({ movies: getMovies(), genres }); // "genres" is equivalent to "genres: genres"
   }
 
@@ -55,16 +54,12 @@ class Movies extends Component {
       selectedGenre,
       movies: allMovies,
     } = this.state;
-
     const filtered =
       selectedGenre && selectedGenre._id
         ? allMovies.filter((m) => m.genre._id === selectedGenre._id)
         : allMovies;
-
     const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]); // array arguments because we may sort by multiple columns or properties
-
     const movies = paginate(sorted, currentPage, pageSize);
-
     return { totalCount: filtered.length, data: movies };
   };
 
