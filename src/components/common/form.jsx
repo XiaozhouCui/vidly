@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Joi from "joi-browser";
 import Input from "./input";
+import Select from "./select";
 
 // This Form component doesn't have a render() method, and can only be extended by other components.
 class Form extends Component {
@@ -66,6 +67,20 @@ class Form extends Component {
         name={name}
         value={data[name]} // making it a controlled element
         label={label}
+        onChange={this.handleChange} // two-way binding
+        error={errors[name]}
+      />
+    );
+  }
+
+  renderSelect(name, label, options) {
+    const { data, errors } = this.state;
+    return (
+      <Select
+        name={name}
+        value={data[name]} // making it a controlled element
+        label={label}
+        options={options}
         onChange={this.handleChange} // two-way binding
         error={errors[name]}
       />
