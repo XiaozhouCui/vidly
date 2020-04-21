@@ -1,14 +1,14 @@
 import React from "react";
 import Form from "./common/form";
 import Joi from "joi-browser";
-import { getMovie, saveMovie } from "../services/fakeMovieService";
-import { getGenres } from "../services/fakeGenreService";
+import { getMovie, saveMovie } from "../services/movieService";
+import { getGenres } from "../services/genreService";
 
 class MovieForm extends Form {
   state = {
     data: {
       title: "",
-      genreId: "",
+      genreId: "", // database schema doesn't have this property, need to map to view model
       numberInStock: "",
       dailyRentalRate: "",
     },
@@ -28,33 +28,42 @@ class MovieForm extends Form {
     dailyRentalRate: Joi.number().required().min(0).max(10).label("Rate"),
   };
 
-  componentDidMount() {
-    const genres = getGenres();
+  async populateGenres() {
+    const { data: genres } = await getGenres();
     this.setState({ genres });
+  }
 
-    const movieId = this.props.match.params.id;
-    if (movieId === "new") return;
+  async populateMovie() {
+    try {
+      const movieId = this.props.match.params.id;
+      if (movieId === "new") return; // return will stop execution of function
 
-    const movie = getMovie(movieId);
-    if (!movie) return this.props.history.replace("/not-found"); // history.replace will work on invalid id when clicking "go back" button
+      const { data: movie } = await getMovie(movieId);
+      this.setState({ data: this.mapToViewModel(movie) }); // mapToViewModel is common for data fetched from API
+    } catch (ex) {
+      if (ex.response && ex.response.status === 404)
+        this.props.history.replace("/not-found"); // history.replace will work on invalid id when clicking "go back" button
+    }
+  }
 
-    this.setState({ data: this.mapToViewModel(movie) }); // mapToViewModel is common for data fetched from API
+  async componentDidMount() {
+    await this.populateGenres();
+    await this.populateMovie();
   }
 
   mapToViewModel(movie) {
     return {
       _id: movie._id,
       title: movie.title,
-      genreId: movie.genre._id,
+      genreId: movie.genre._id, // database schema doesn't have "genreId"
       numberInStock: movie.numberInStock,
       dailyRentalRate: movie.dailyRentalRate,
     };
   }
 
-  doSubmit = () => {
-    saveMovie(this.state.data);
-    console.log("Submitted");
-    this.props.history.push("/movies");
+  doSubmit = async () => {
+    await saveMovie(this.state.data); // backend will map ViewModel schema to database schema
+    this.props.history.push("/movies"); // redirect to movie page after saving
   };
 
   render() {
