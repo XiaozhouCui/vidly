@@ -1,5 +1,4 @@
 import http from "./httpService";
-import { getGenres } from "./genreService";
 import { apiUrl } from "../config.json";
 
 const apiEndpoint = apiUrl + "/movies";
