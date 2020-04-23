@@ -1,7 +1,7 @@
 import React from "react";
 import Joi from "joi-browser";
 import Form from "./common/form"; // a form template without render method
-import { login } from "../services/authService";
+import auth from "../services/authService";
 
 class LoginForm extends Form {
   state = {
@@ -17,9 +17,8 @@ class LoginForm extends Form {
   doSubmit = async () => {
     try {
       const { data } = this.state;
-      const { data: jwt } = await login(data.username, data.password); // response's data property will include a json web token
-      localStorage.setItem("token", jwt);
-      this.props.history.push("/");
+      await auth.login(data.username, data.password);
+      window.location = "/"; // dont't use history.push, need to fully reload the page to get jwt from localstroage
     } catch (ex) {
       // expected error: invalid username/password
       if (ex.response && ex.response.status === 400) {

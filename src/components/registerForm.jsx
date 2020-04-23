@@ -2,6 +2,7 @@ import React from "react";
 import Joi from "joi-browser";
 import Form from "./common/form";
 import * as userService from "../services/userService";
+import auth from "../services/authService";
 
 class RegisterForm extends Form {
   state = {
@@ -18,7 +19,7 @@ class RegisterForm extends Form {
   doSubmit = async () => {
     try {
       const response = await userService.register(this.state.data);
-      localStorage.setItem("token", response.headers["x-auth-token"]); // get jwt from custom response header "x-auth-token" and save in local storage
+      auth.loginWithJwt(response.headers["x-auth-token"]); // get jwt from custom response header "x-auth-token" and save in local storage
       this.props.history.push("/"); // redirect to homepage
     } catch (ex) {
       // expected error: username already exists
