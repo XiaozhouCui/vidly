@@ -5,6 +5,8 @@ import { apiUrl } from "../config.json";
 const apiEndpoint = apiUrl + "/auth";
 const tokenKey = "token";
 
+http.setJwt(getJwt()); // http module is requiring jwt here, to avoid bi-directional dependencies (2 modules import each other)
+
 export async function login(email, password) {
   const { data: jwt } = await http.post(apiEndpoint, { email, password }); // response's data property will include a json web token
   localStorage.setItem(tokenKey, jwt);
@@ -27,9 +29,14 @@ export function getCurrentUser() {
   }
 }
 
+export function getJwt() {
+  return localStorage.getItem(tokenKey);
+}
+
 export default {
   login,
   loginWithJwt,
   logout,
   getCurrentUser,
+  getJwt,
 };

@@ -1,6 +1,5 @@
 import axios from "axios";
 import logger from "./logService";
-import config from "../config.json";
 import { toast } from "react-toastify";
 
 axios.interceptors.response.use(null, (error) => {
@@ -15,17 +14,14 @@ axios.interceptors.response.use(null, (error) => {
   return Promise.reject(error);
 });
 
+function setJwt(jwt) {
+  axios.defaults.headers.common["x-auth-token"] = jwt; // add a header to all kinds of http requests
+}
+
 export default {
   get: axios.get,
   post: axios.post,
   put: axios.put,
   delete: axios.delete,
+  setJwt,
 };
-
-export function getGenres() {
-  return axios.get(config.genreEndpoint);
-}
-
-export function getMovies() {
-  return axios.get(config.movieEndpoint);
-}
