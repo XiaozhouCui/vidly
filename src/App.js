@@ -15,12 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 class App extends Component {
-  state = {};
-
-  componentDidMount() {
-    const user = auth.getCurrentUser();
-    this.setState({ user });
-  }
+  state = { user: auth.getCurrentUser() };
 
   render() {
     const { user } = this.state;
@@ -33,7 +28,21 @@ class App extends Component {
             <Route path="/register" component={RegisterForm} />
             <Route path="/login" component={LoginForm} />
             <Route path="/logout" component={Logout} />
-            <Route path="/movies/:id" component={MovieForm} />
+            <Route
+              path="/movies/:id"
+              render={(props) => {
+                if (!user)
+                  return (
+                    <Redirect
+                      to={{
+                        pathname: "/login", // if not logged-in, redirect to login page
+                        state: { from: props.location }, // pass the current location to login page
+                      }}
+                    />
+                  );
+                return <MovieForm {...props} />; // this is the protected component
+              }}
+            />
             <Route
               path="/movies"
               render={(props) => <Movies {...props} user={user} />}

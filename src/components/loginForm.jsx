@@ -1,4 +1,5 @@
 import React from "react";
+import { Redirect } from "react-router-dom";
 import Joi from "joi-browser";
 import Form from "./common/form"; // a form template without render method
 import auth from "../services/authService";
@@ -18,7 +19,9 @@ class LoginForm extends Form {
     try {
       const { data } = this.state;
       await auth.login(data.username, data.password);
-      window.location = "/"; // dont't use history.push, need to fully reload the page to get jwt from localstroage
+      const { state } = this.props.location; // check if the user is redirected to login page from other page
+      window.location = state ? state.from.pathname : "/"; // if the user is redirected here, then after login, the user will see the page before redirection
+      // dont't use history.push for redirecting, need to fully reload the page to get jwt from localstroage
     } catch (ex) {
       // expected error: invalid username/password
       if (ex.response && ex.response.status === 400) {
@@ -30,6 +33,7 @@ class LoginForm extends Form {
   };
 
   render() {
+    if (auth.getCurrentUser()) return <Redirect to="/" />;
     return (
       <div>
         <h1>Login</h1>
